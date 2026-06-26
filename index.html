@@ -49,13 +49,11 @@
   .schedule-box {
     background: #F8F7F4;
     border-radius: 12px;
-    padding: 1rem 1.25rem;
+    padding: 0.75rem 1.25rem;
     margin: 1.5rem 0 2rem;
   }
   .schedule-item {
-    display: flex;
-    gap: 12px;
-    padding: 10px 0;
+    padding: 12px 0;
     border-bottom: 1px solid #EEECEA;
   }
   .schedule-item:last-child { border-bottom: none; }
@@ -63,19 +61,16 @@
     font-size: 12px;
     color: #FE9C00;
     font-weight: 600;
-    white-space: nowrap;
-    padding-top: 2px;
-    min-width: 68px;
+    margin-bottom: 4px;
   }
-  .s-info {}
   .s-speaker {
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     color: #1a1a1a;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
   }
   .s-topic {
-    font-size: 12px;
+    font-size: 13px;
     color: #888;
     line-height: 1.5;
   }
@@ -117,10 +112,17 @@
   .icon-yt { background: #FF0000; }
   .icon-ai { background: #003087; }
   .icon-db { background: #1B6CD4; }
-  .btn-text { flex: 1; }
+  .btn-text { flex: 1; min-width: 0; }
   .btn-name { font-size: 14px; font-weight: 600; color: #1a1a1a; }
-  .btn-desc { font-size: 12px; color: #aaa; margin-top: 2px; }
-  .arrow { color: #ccc; font-size: 15px; }
+  .btn-desc {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .arrow { color: #ccc; font-size: 15px; flex-shrink: 0; }
   hr { border: none; border-top: 1px solid #F0EEE8; margin: 0 0 1.25rem; }
   .footer {
     font-size: 13px;
@@ -141,24 +143,18 @@
   <div class="schedule-box">
     <div class="schedule-item">
       <div class="s-time">14:00 - 14:50</div>
-      <div class="s-info">
-        <div class="s-speaker">김상균</div>
-        <div class="s-topic">AI가 다시 그리는 일, 산업, 경제의 지도</div>
-      </div>
+      <div class="s-speaker">김상균</div>
+      <div class="s-topic">AI가 다시 그리는 일, 산업, 경제의 지도</div>
     </div>
     <div class="schedule-item">
       <div class="s-time">15:00 - 15:50</div>
-      <div class="s-info">
-        <div class="s-speaker">김덕진</div>
-        <div class="s-topic">피지컬 AI, 스크린을 벗어난 AI</div>
-      </div>
+      <div class="s-speaker">김덕진</div>
+      <div class="s-topic">피지컬 AI, 스크린을 벗어난 AI</div>
     </div>
     <div class="schedule-item">
       <div class="s-time">16:00 - 17:00</div>
-      <div class="s-info">
-        <div class="s-speaker">궤도 (김재혁)</div>
-        <div class="s-topic">AI시대, 인류는 새로운 도구로 무엇을 볼 수 있을까?</div>
-      </div>
+      <div class="s-speaker">궤도 (김재혁)</div>
+      <div class="s-topic">AI시대, 인류는 새로운 도구로 무엇을 볼 수 있을까?</div>
     </div>
   </div>
 
