@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 AI 인사이트 포럼 입장 확인</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+body { font-family: "Noto Sans KR", sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+.container { max-width: 500px; margin: 0 auto; }
+.header { background: #1a1a2e; color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
+.header h1 { margin: 0; font-size: 18px; }
+.header p { margin: 5px 0 0; font-size: 13px; color: #aaa; }
+.scan-box { background: white; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.scan-box p { color: #666; font-size: 14px; margin: 0 0 15px; }
+#reader { width: 100%; border-radius: 8px; overflow: hidden; }
+.btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.btn-scan { background: #FE9C00; color: white; }
+.btn-stop { background: #666; color: white; }
+.result { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: none; margin-top: 20px; }
+.result.success { border-left: 5px solid #4CAF50; }
+.result.fail { border-left: 5px solid #f44336; }
+.result.duplicate { border-left: 5px solid #FF9800; }
+.result h2 { margin: 0 0 15px; font-size: 16px; }
+.result.success h2 { color: #4CAF50; }
+.result.fail h2 { color: #f44336; }
+.result.duplicate h2 { color: #FF9800; }
+.info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+.info-row:last-child { border-bottom: none; }
+.info-label { color: #888; }
+.info-value { font-weight: bold; color: #333; }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+.badge-onsite { background: #e3f2fd; color: #1565c0; }
+.badge-online { background: #f3e5f5; color: #6a1b9a; }
+.badge-waitlist { background: #fff3e0; color: #e65100; }
+.btn-reset { background: #FE9C00; color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+.loading { color: #888; font-size: 14px; padding: 20px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>2026 AI 인사이트 포럼</h1>
+    <p>입장 확인 시스템</p>
+  </div>
+  <div class="scan-box">
+    <p>QR코드를 카메라로 스캔하세요</p>
+    <div id="reader"></div>
+    <button class="btn btn-scan" id="startBtn" onclick="startScan()">카메라 스캔 시작</button>
+    <button class="btn btn-stop" id="stopBtn" onclick="stopScan()" style="display:none">스캔 중지</button>
+  </div>
+  <div class="result" id="result"></div>
+</div>
+<script>
+var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMuUGiyYJCmryW5cbfC_VuEnruHMqvQbjZz5DwRxYzQDWKWsAZWJqI8adoaDuf7NCK/exec';
+var html5QrCode;
+var scanning = false;
+
+function startScan() {
+  html5QrCode = new Html5Qrcode("reader");
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    function(decodedText) {
+      stopScan();
+      checkIn(decodedText);
+    },
+    function(error) {}
+  ).then(function() {
+    document.getElementById("startBtn").style.display = "none";
+    document.getElementById("stopBtn").style.display = "block";
+    scanning = true;
+  }).catch(function(err) {
+    alert("카메라를 시작할 수 없습니다.\n오류 내용: " + err);
+  });
+}
+
+function stopScan() {
+  if (html5QrCode && scanning) {
+    html5QrCode.stop();
+    scanning = false;
+  }
+  document.getElementById("startBtn").style.display = "block";
+  document.getElementById("stopBtn").style.display = "none";
+}
+
+function checkIn(qrData) {
+  var resultDiv = document.getElementById("result");
+  resultDiv.style.display = "block";
+  resultDiv.className = "result";
+  resultDiv.innerHTML = "<p class='loading'>확인 중입니다...</p>";
+
+  fetch(APPS_SCRIPT_URL + '?action=verify&data=' + encodeURIComponent(qrData))
+    .then(function(res) { return res.json(); })
+    .then(showResult)
+    .catch(showError);
+}
+
+function showResult(data) {
+  var resultDiv = document.getElementById("result");
+  resultDiv.style.display = "block";
+  if (data.duplicate) {
+    resultDiv.className = "result duplicate";
+    resultDiv.innerHTML = "<h2>이미 입장한 신청자입니다</h2>" +
+      "<div class='info-row'><span class='info-label'>성명</span><span class='info-value'>" + data.name + "</span></div>" +
+      "<div class='info-row'><span class='info-label'>최초 입장 시간</span><span class='info-value'>" + data.checkinTime + "</span></div>" +
+      "<button class='btn-reset' onclick='resetScan()'>다음 입장자 확인</button>";
+  } else if (data.found) {
+    var badgeClass = data.attendType.indexOf("대기") !== -1 ? "badge-waitlist" : (data.attendType.indexOf("현장") !== -1 ? "badge-onsite" : "badge-online");
+    resultDiv.className = "result success";
+    resultDiv.innerHTML = "<h2>입장 확인 완료</h2>" +
+      "<div class='info-row'><span class='info-label'>성명</span><span class='info-value'>" + data.name + "</span></div>" +
+      "<div class='info-row'><span class='info-label'>연락처</span><span class='info-value'>***-****-" + data.phoneLastFour + "</span></div>" +
+      "<div class='info-row'><span class='info-label'>참석 유형</span><span class='info-value'><span class='badge " + badgeClass + "'>" + data.attendType + "</span></span></div>" +
+      "<button class='btn-reset' onclick='resetScan()'>다음 입장자 확인</button>";
+  } else {
+    resultDiv.className = "result fail";
+    resultDiv.innerHTML = "<h2>확인 실패</h2><p>등록된 신청자를 찾을 수 없습니다.</p><button class='btn-reset' onclick='resetScan()'>다시 시도</button>";
+  }
+}
+
+function showError(err) {
+  var resultDiv = document.getElementById("result");
+  resultDiv.style.display = "block";
+  resultDiv.className = "result fail";
+  resultDiv.innerHTML = "<h2>오류 발생</h2><p>잠시 후 다시 시도해주세요.</p><button class='btn-reset' onclick='resetScan()'>다시 시도</button>";
+}
+
+function resetScan() {
+  document.getElementById("result").style.display = "none";
+  startScan();
+}
+</script>
+</body>
+</html>
